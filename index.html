@@ -5,210 +5,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Public Domain Movie Streamer</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: #111;
-            color: #fff;
-            font-family: sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            background-color: #111; color: #fff; font-family: sans-serif;
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
-
-        header {
-            background-color: #000;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 2px solid #333;
-        }
-
-        main {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
+        header { background-color: #000; padding: 20px; text-align: center; border-bottom: 2px solid #333; }
+        main { display: flex; flex: 1; overflow: hidden; }
         .player-container {
-            flex: 2;
-            background-color: #000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            border-right: 2px solid #333;
+            flex: 2; background-color: #000; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 20px; border-right: 2px solid #333;
         }
-
-        video {
-            width: 100%;
-            max-height: 80%;
-            background-color: #000;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-        }
-
-        #movie-title {
-            margin-top: 15px;
-            font-size: 1.4rem;
-            text-align: center;
-            color: #e50914;
-        }
-
-        .sidebar {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background-color: #181818;
-        }
-
-        .sidebar h2 {
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-        }
-
-        .movie-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
+        video { width: 100%; max-height: 80%; background: #000; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+        #movie-title { margin-top: 15px; font-size: 1.4rem; color: #e50914; }
+        .sidebar { flex: 1; overflow-y: auto; padding: 20px; background-color: #181818; }
+        .sidebar h2 { margin-bottom: 15px; font-size: 1.2rem; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .movie-list { display: flex; flex-direction: column; gap: 15px; }
         .movie-card {
-            background-color: #222;
-            border-radius: 6px;
-            padding: 15px;
-            cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
-            border: 1px solid #333;
+            background-color: #222; border-radius: 6px; padding: 15px; cursor: pointer;
+            transition: all 0.2s; border: 1px solid #333;
         }
-
-        .movie-card:hover {
-            transform: translateY(-2px);
-            background-color: #333;
-            border-color: #e50914;
-        }
-
-        .movie-card.active {
-            border-color: #e50914;
-            background-color: #2a1111;
-        }
-
-        .movie-card h3 {
-            font-size: 1rem;
-            margin-bottom: 5px;
-        }
-
-        .movie-meta {
-            font-size: 0.8rem;
-            color: #aaa;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #aaa;
-            font-style: italic;
-        }
+        .movie-card:hover { transform: translateY(-2px); background-color: #333; border-color: #e50914; }
+        .movie-card.active { border-color: #e50914; background-color: #2a1111; }
+        .movie-meta { font-size: 0.8rem; color: #aaa; }
+        .loading { text-align: center; padding: 40px; color: #aaa; font-style: italic; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Cinema Classics</h1>
-    </header>
+<header><h1>Cinema Classics</h1></header>
 
-    <main>
-        <div class="player-container">
-            <video id="video-player" controls autoplay>
-                Your browser does not support the video tag.
-            </video>
-            <h2 id="movie-title">Select a movie from the list to start watching</h2>
-        </div>
+<main>
+    <div class="player-container">
+        <video id="video-player" controls></video>
+        <h2 id="movie-title">Select a movie from the list</h2>
+    </div>
+    <div class="sidebar">
+        <h2>Feature Films</h2>
+        <div id="loading" class="loading">Loading...</div>
+        <div id="movie-list" class="movie-list"></div>
+    </div>
+</main>
 
-        <div class="sidebar">
-            <h2>Feature Films</h2>
-            <div id="loading" class="loading">Loading public domain catalog...</div>
-            <div id="movie-list" class="movie-list"></div>
-        </div>
-    </main>
-
-    <script>
+<script>
 const videoPlayer = document.getElementById('video-player');
-const movieTitle = document.getElementById('movie-title');
-const movieListContainer = document.getElementById('movie-list');
-const loadingElement = document.getElementById('loading');
+const movieTitleEl = document.getElementById('movie-title');
+const movieList = document.getElementById('movie-list');
+const loading = document.getElementById('loading');
 
 async function fetchMovies() {
-    loadingElement.innerText = "Loading movies from Archive.org...";
-
     try {
-        const apiUrl = "https://archive.org/advancedsearch.php?q=mediatype:movies+AND+collection:opensource_movies&output=json&rows=20";
+        const url = "https://archive.org/advancedsearch.php?q=mediatype:movies AND collection:opensource_movies&output=json&rows=20";
+        const proxy = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
 
-        // Try codetabs first (usually faster)
-        const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`;
+        const res = await fetch(proxy);
+        if (!res.ok) throw new Error("Network error");
 
-        const response = await fetch(proxyUrl);
-        
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await res.json();
 
-        const text = await response.text();
-        const data = JSON.parse(text);
-
-        if (data.response?.docs?.length > 0) {
-            loadingElement.style.display = 'none';
+        if (data.response && data.response.docs && data.response.docs.length > 0) {
+            loading.style.display = "none";
             displayMovies(data.response.docs);
         } else {
-            throw new Error("No movies returned");
+            throw new Error("No data");
         }
-
-    } catch (error) {
-        console.error(error);
-        loadingElement.innerHTML = `Could not load catalog.<br><small>${error.message}</small>`;
+    } catch (e) {
+        console.error(e);
+        loading.innerHTML = "Failed to load. Try uploading to GitHub Pages.";
     }
 }
 
 function displayMovies(movies) {
-    movieListContainer.innerHTML = '';
+    movieList.innerHTML = "";
+    movies.forEach(m => {
+        if (!m.identifier || !m.title) return;
 
-    movies.forEach(movie => {
-        if (!movie.title || !movie.identifier) return;
-
-        const card = document.createElement('div');
-        card.className = 'movie-card';
-        card.innerHTML = `
-            <h3>${movie.title}</h3>
-            <div class="movie-meta">
-                ${movie.date ? `Year: ${movie.date}` : ''} 
-                ${movie.creator ? `<br>By: ${movie.creator}` : ''}
-            </div>
-        `;
-
-        card.addEventListener('click', () => {
+        const card = document.createElement("div");
+        card.className = "movie-card";
+        card.innerHTML = `<h3>${m.title}</h3><div class="movie-meta">${m.date ? m.date.substring(0,4) : ''}</div>`;
+        
+        card.onclick = () => {
             document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('active'));
             card.classList.add('active');
-            playMovie(movie.identifier, movie.title);
-        });
-
-        movieListContainer.appendChild(card);
+            playMovie(m.identifier, m.title);
+        };
+        movieList.appendChild(card);
     });
 }
 
-function playMovie(identifier, title) {
-    movieTitle.innerText = title;
-    const streamUrl = `https://archive.org/download/${identifier}/${identifier}.mp4`;
-    videoPlayer.src = streamUrl;
+function playMovie(id, title) {
+    movieTitleEl.textContent = title;
+    videoPlayer.src = `https://archive.org/download/${id}/${id}.mp4`;
     videoPlayer.load();
     videoPlayer.play().catch(() => {});
 }
 
-// Start
 fetchMovies();
 </script>
 </body>
