@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cinema Classics</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="shortcut icon" href="favicon.png" type="image/png">
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -68,25 +73,22 @@
         const titleEl = document.getElementById('movie-title');
 
         function playSherlockJr(el) {
-            // Remove active from all cards
             document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
 
             titleEl.textContent = "Sherlock Jr. (1924)";
 
-            // Try Archive.org first
-            const archiveEmbed = "https://archive.org/embed/sherlock.-jr..-1924.1080p.-blu-ray.x-264-yts.-am";
-            
-            player.src = archiveEmbed;
+            // Primary: Archive.org
+            player.src = "https://archive.org/embed/sherlock.-jr..-1924.1080p.-blu-ray.x-264-yts.-am";
 
-            // If Archive.org fails (offline), fallback to YouTube after a short delay
+            // Fallback to YouTube if Archive.org fails
             setTimeout(() => {
-                if (player.contentWindow.location.href.includes("archive.org") === false || 
-                    player.contentWindow.document.body.innerHTML.includes("offline")) {
-                    console.log("Archive.org unavailable - switching to YouTube");
+                // Simple check - if still showing archive error page
+                if (player.src.includes("archive.org")) {
+                    console.log("Switching to YouTube fallback");
                     player.src = "https://www.youtube.com/embed/efydqBb5_Wc";
                 }
-            }, 3000);
+            }, 4000);
         }
     </script>
 </body>
