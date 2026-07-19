@@ -53,44 +53,48 @@ const movieTitleEl = document.getElementById('movie-title');
 const movieList = document.getElementById('movie-list');
 const loading = document.getElementById('loading');
 
-async function fetchMovies() {
-    try {
-        const url = "https://archive.org/advancedsearch.php?q=mediatype:movies AND collection:opensource_movies&output=json&rows=20";
-        const proxy = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
+const movies = [
+    { title: "Night of the Living Dead (1968)", id: "nightofthelivingdead", year: 1968 },
+    { title: "Plan 9 from Outer Space (1959)", id: "Plan9fromOuterSpace", year: 1959 },
+    { title: "The Little Shop of Horrors (1960)", id: "littleshopofhorrors", year: 1960 },
+    { title: "Carnival of Souls (1962)", id: "carnivalofsouls", year: 1962 },
+    { title: "Nosferatu (1922)", id: "nosferatu", year: 1922 },
+    { title: "Metropolis (1927)", id: "Metropolis", year: 1927 },
+    { title: "The General (1926)", id: "thegeneral1926", year: 1926 },
+    { title: "Safety Last! (1923)", id: "safety_last", year: 1923 },
+    { title: "Steamboat Bill, Jr. (1928)", id: "steamboatbilljr", year: 1928 },
+    { title: "The Kid (1921)", id: "thekid1921", year: 1921 },
+    { title: "Sherlock Jr. (1924)", id: "sherlockjr", year: 1924 },
+    { title: "The Cabinet of Dr. Caligari (1920)", id: "caligari", year: 1920 },
+    { title: "Charade (1963)", id: "charade", year: 1963 },
+    { title: "The Hitch-Hiker (1953)", id: "thehitchhiker", year: 1953 }
+];
 
-        const res = await fetch(proxy);
-        if (!res.ok) throw new Error("Network error");
-
-        const data = await res.json();
-
-        if (data.response && data.response.docs && data.response.docs.length > 0) {
-            loading.style.display = "none";
-            displayMovies(data.response.docs);
-        } else {
-            throw new Error("No data");
-        }
-    } catch (e) {
-        console.error(e);
-        loading.innerHTML = "Failed to load. Try uploading to GitHub Pages.";
-    }
-}
-
-function displayMovies(movies) {
+function init() {
+    loading.style.display = "none";
     movieList.innerHTML = "";
-    movies.forEach(m => {
-        if (!m.identifier || !m.title) return;
 
+    movies.forEach(movie => {
         const card = document.createElement("div");
         card.className = "movie-card";
-        card.innerHTML = `<h3>${m.title}</h3><div class="movie-meta">${m.date ? m.date.substring(0,4) : ''}</div>`;
-        
-        card.onclick = () => {
-            document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
-            playMovie(m.identifier, m.title);
-        };
+        card.innerHTML = `
+            <h3>${movie.title}</h3>
+            <div class="movie-meta">${movie.year}</div>
+        `;
+
+        card.addEventListener("click", () => {
+            document.querySelectorAll(".movie-card").forEach(c => c.classList.remove("active"));
+            card.classList.add("active");
+            playMovie(movie.id, movie.title);
+        });
+
         movieList.appendChild(card);
     });
+
+    // Auto-play first movie
+    if (movies.length > 0) {
+        playMovie(movies[0].id, movies[0].title);
+    }
 }
 
 function playMovie(id, title) {
@@ -100,7 +104,8 @@ function playMovie(id, title) {
     videoPlayer.play().catch(() => {});
 }
 
-fetchMovies();
+// Start
+init();
 </script>
 </body>
 </html>
