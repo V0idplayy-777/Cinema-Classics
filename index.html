@@ -146,49 +146,31 @@ const movieListContainer = document.getElementById('movie-list');
 const loadingElement = document.getElementById('loading');
 
 async function fetchMovies() {
-    loadingElement.innerText = "Contacting archive.org...";
+    loadingElement.innerText = "Loading movies from Archive.org...";
 
     try {
-        const searchQuery = 'mediatype:movies AND collection:opensource_movies';
-        const apiUrl = `https://archive.org/advancedsearch.php?q=${encodeURIComponent(searchQuery)}&output=json&rows=20`;
+        const apiUrl = "https://archive.org/advancedsearch.php?q=mediatype:movies+AND+collection:opensource_movies&output=json&rows=20";
 
-        // Try multiple proxies
-        const proxies = [
-            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`,
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`
-        ];
+        // Try codetabs first (usually faster)
+        const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`;
 
-        let data = null;
-        for (let proxyUrl of proxies) {
-            try {
-                console.log("Trying:", proxyUrl);
-                const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 20000);
+        const response = await fetch(proxyUrl);
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-                const response = await fetch(proxyUrl, { signal: controller.signal });
-                clearTimeout(timeout);
+        const text = await response.text();
+        const data = JSON.parse(text);
 
-                if (response.ok) {
-                    const text = await response.text();
-                    data = JSON.parse(text);
-                    console.log("Success with proxy");
-                    break;
-                }
-            } catch (e) {
-                console.warn("Proxy failed, trying next...");
-            }
+        if (data.response?.docs?.length > 0) {
+            loadingElement.style.display = 'none';
+            displayMovies(data.response.docs);
+        } else {
+            throw new Error("No movies returned");
         }
-
-        if (!data || !data.response || !data.response.docs) {
-            throw new Error("Could not get movie data");
-        }
-
-        loadingElement.style.display = 'none';
-        displayMovies(data.response.docs);
 
     } catch (error) {
-        console.error("Error:", error);
-        loadingElement.innerHTML = `Failed to load from archive.org.<br><small>${error.message}</small>`;
+        console.error(error);
+        loadingElement.innerHTML = `Could not load catalog.<br><small>${error.message}</small>`;
     }
 }
 
@@ -200,12 +182,11 @@ function displayMovies(movies) {
 
         const card = document.createElement('div');
         card.className = 'movie-card';
-        
         card.innerHTML = `
             <h3>${movie.title}</h3>
             <div class="movie-meta">
-                ${movie.creator ? `By: ${movie.creator}<br>` : ''}
-                ${movie.date ? `Year: ${movie.date}` : 'Public Domain'}
+                ${movie.date ? `Year: ${movie.date}` : ''} 
+                ${movie.creator ? `<br>By: ${movie.creator}` : ''}
             </div>
         `;
 
@@ -220,18 +201,15 @@ function displayMovies(movies) {
 }
 
 function playMovie(identifier, title) {
-    movieTitle.innerText = title || identifier;
+    movieTitle.innerText = title;
     const streamUrl = `https://archive.org/download/${identifier}/${identifier}.mp4`;
-    
     videoPlayer.src = streamUrl;
     videoPlayer.load();
-    videoPlayer.play().catch(err => {
-        console.warn("Play error (click play manually):", err);
-    });
+    videoPlayer.play().catch(() => {});
 }
 
 // Start
 fetchMovies();
-    </script>
+</script>
 </body>
 </html>
