@@ -18,14 +18,14 @@
             flex: 2; background-color: #000; display: flex; flex-direction: column;
             justify-content: center; align-items: center; padding: 20px;
         }
-        .sidebar {
-            flex: 1; overflow-y: auto; padding: 20px; background-color: #181818;
-        }
         iframe {
             width: 100%; max-width: 100%; height: 85%; border: none; background: #000;
         }
         #movie-title {
             margin-top: 15px; font-size: 1.5rem; color: #e50914; text-align: center;
+        }
+        .sidebar {
+            flex: 1; overflow-y: auto; padding: 20px; background-color: #181818;
         }
         .movie-card {
             background-color: #222; border-radius: 6px; padding: 15px; margin-bottom: 15px;
@@ -43,23 +43,20 @@
     </header>
 
     <main>
-        <!-- Player -->
+        <!-- Player Area -->
         <div class="player-container">
             <iframe id="main-player" 
-                    src="https://archive.org/embed/sherlock.-jr..-1924.1080p.-blu-ray.x-264-yts.-am" 
                     width="560" height="384" 
                     frameborder="0" 
-                    webkitallowfullscreen="true" 
-                    mozallowfullscreen="true" 
                     allowfullscreen>
             </iframe>
-            <h2 id="movie-title">Sherlock Jr. (1924)</h2>
+            <h2 id="movie-title">Select a movie from the sidebar</h2>
         </div>
 
         <!-- Sidebar -->
         <div class="sidebar">
             <h2>Available Movies</h2>
-            <div class="movie-card active" onclick="switchMovie(this)">
+            <div class="movie-card" onclick="playSherlockJr(this)">
                 <h3>Sherlock Jr. (1924)</h3>
                 <div style="font-size:0.9rem; color:#aaa;">Buster Keaton • Silent Comedy • G</div>
             </div>
@@ -67,12 +64,29 @@
     </main>
 
     <script>
-        function switchMovie(el) {
+        const player = document.getElementById('main-player');
+        const titleEl = document.getElementById('movie-title');
+
+        function playSherlockJr(el) {
+            // Remove active from all cards
             document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
+
+            titleEl.textContent = "Sherlock Jr. (1924)";
+
+            // Try Archive.org first
+            const archiveEmbed = "https://archive.org/embed/sherlock.-jr..-1924.1080p.-blu-ray.x-264-yts.-am";
             
-            // For now we only have one movie
-            document.getElementById('movie-title').textContent = "Sherlock Jr. (1924)";
+            player.src = archiveEmbed;
+
+            // If Archive.org fails (offline), fallback to YouTube after a short delay
+            setTimeout(() => {
+                if (player.contentWindow.location.href.includes("archive.org") === false || 
+                    player.contentWindow.document.body.innerHTML.includes("offline")) {
+                    console.log("Archive.org unavailable - switching to YouTube");
+                    player.src = "https://www.youtube.com/embed/efydqBb5_Wc";
+                }
+            }, 3000);
         }
     </script>
 </body>
