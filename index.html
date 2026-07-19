@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cinema Classics</title>
     
-    <!-- Favicon -->
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="shortcut icon" href="favicon.png" type="image/png">
 
@@ -48,7 +47,6 @@
     </header>
 
     <main>
-        <!-- Player Area -->
         <div class="player-container">
             <iframe id="main-player" 
                     width="560" height="384" 
@@ -56,9 +54,9 @@
                     allowfullscreen>
             </iframe>
             <h2 id="movie-title">Select a movie from the sidebar</h2>
+            <h3 id="movie-title">456Movies is in Beta and currently has 1 movie.</h3>
         </div>
 
-        <!-- Sidebar -->
         <div class="sidebar">
             <h2>Available Movies</h2>
             <div class="movie-card" onclick="playSherlockJr(this)">
@@ -78,12 +76,9 @@
 
             titleEl.textContent = "Sherlock Jr. (1924)";
 
-            // Primary: Archive.org
             player.src = "https://archive.org/embed/sherlock.-jr..-1924.1080p.-blu-ray.x-264-yts.-am";
 
-            // Fallback to YouTube if Archive.org fails
             setTimeout(() => {
-                // Simple check - if still showing archive error page
                 if (player.src.includes("archive.org")) {
                     console.log("Switching to YouTube fallback");
                     player.src = "https://www.youtube.com/embed/efydqBb5_Wc";
